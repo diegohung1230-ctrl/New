@@ -1,0 +1,79 @@
+import streamlit as st
+import random
+
+# --- 網頁設定 ---
+st.set_page_config(page_title="爭競戰場 Battlefield of Despair", layout="wide")
+
+# --- 遊戲風格 CSS (黃金聖域主題) ---
+st.markdown("""
+    <style>
+    .main { background-color: #1a1a1a; color: #f1c40f; }
+    .stButton>button { background-color: #f1c40f; color: black; font-weight: bold; border-radius: 10px; }
+    h1 { color: #f1c40f; text-shadow: 2px 2px #000; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- 遊戲邏輯與資料庫 (Session State) ---
+if 'player' not in st.session_state:
+    st.session_state.player = {
+        "level": 1,
+        "gold": 1000,
+        "class": None,
+        "inventory": [],
+        "is_owner": False
+    }
+
+# --- 標題 ---
+st.title("🎮 爭競戰場：重啟紀元 (Web Edition)")
+st.subheader("—— 繼承槍神大人的榮耀，重塑黃金聖域 ——")
+
+# --- 1. 角色選擇 ---
+if not st.session_state.player["class"]:
+    st.info("請選擇你的初始職階：")
+    col1, col2, col3 = st.columns(3)
+    if col1.button("🛡️ 重裝先鋒"):
+        st.session_state.player["class"] = "重裝先鋒"
+        st.rerun()
+    if col2.button("🗡️ 暗影獵殺者"):
+        st.session_state.player["class"] = "暗影獵殺者"
+        st.rerun()
+    if col3.button("📡 未來支援官"):
+        st.session_state.player["class"] = "未來支援官"
+        st.rerun()
+else:
+    # --- 遊戲主要介面 ---
+    p = st.session_state.player
+    st.sidebar.markdown(f"### 👤 玩家狀態")
+    st.sidebar.write(f"職階: **{p['class']}**")
+    st.sidebar.write(f"等級: **Lv. {p['level']}**")
+    st.sidebar.write(f"持有金幣: **{p['gold']} G**")
+    
+    # --- 功能區 ---
+    tab1, tab2, tab3 = st.tabs(["⚔️ 進入戰場", "🎁 每日抽獎", "💎 首富特權"])
+
+    with tab1:
+        st.write("目前所在地：**霓虹都市中心**")
+        if st.button("發起突擊！"):
+            win = random.random() > 0.3
+            if win:
+                reward = 500 * p['level']
+                p['gold'] += reward
+                p['level'] += 1
+                st.success(f"戰鬥勝利！獲得 {reward} G，等級提升！")
+            else:
+                st.error("突擊失敗，裝甲受損，幸好撤退成功。")
+
+    with tab2:
+        st.write("每日免費測試裝備（每日一次）")
+        if st.button("立刻抽取"):
+            items = ["[焚天之怒] 殘片", "[流光戰甲] 零件", "天空核心碎塊"]
+            got = random.choice(items)
+            p['inventory'].append(got)
+            st.warning(f"恭喜獲得：{got}！")
+
+    with tab3:
+        st.write("想成為像「槍神大人」一樣的首富嗎？")
+        if st.button("我要儲值 (10000 G)"):
+            p['gold'] += 10000
+            st.balloons()
+            st.success("儲值成功！金幣已入帳。")
